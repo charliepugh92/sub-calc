@@ -1,0 +1,31 @@
+{
+  "bread": [
+    {
+      "id": "br-italian",
+      "name": "Artisan Italian",
+      "nutrition": {
+        "servingSize": 71,
+        "calories": 200,
+        "totalFat": 2,
+        "satFat": 1,
+        "transFat": 0,
+        "chol": 0,
+        "sodium": 370,
+        "carb": 37,
+        "fiber": 1,
+        "sugar": 3,
+        "addedSugar": 2,
+        "protein": 7,
+        "vitA": 0,
+        "vitC": 8,
+        "calcium": 0,
+        "iron": 10
+      }
+    }
+  ],
+  "condiment": [],
+  "spice": [],
+  "vegetable": [],
+  "cheese": [],
+  "protein": []
+}

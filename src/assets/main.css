@@ -1,0 +1,29 @@
+@import './base.css';
+@import 'primeicons/primeicons.css';
+
+#app {
+  width: 100%;
+  margin: 0 auto;
+  font-weight: normal;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsl(139, 91%, 40%);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (min-width: 1024px) {
+
+}
