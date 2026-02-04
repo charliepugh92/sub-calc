@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { nutritionItem } from '../../stores/nutrition'
+import type { nutritionFacts } from '../../stores/nutrition'
 
-const { item } = defineProps<{ item: nutritionItem }>()
-const nutrition = computed(() => item.nutrition)
+const {
+  nutrition,
+  servingDescription = '6" sub portion',
+} = defineProps<{ nutrition: nutritionFacts, servingDescription: string }>()
 
 </script>
 
@@ -12,7 +14,7 @@ const nutrition = computed(() => item.nutrition)
   header Nutrition Facts
 .section
   .label Serving Size:
-  .value 6" sub portion (about {{ nutrition.servingSize }}g)
+  .value {{ servingDescription }} (about {{ nutrition.servingSize }}g)
 hr
 .section.calories
   .row
