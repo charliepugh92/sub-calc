@@ -46,6 +46,7 @@ const useNutritionStore = defineStore('nutrition', () => {
     const existingIndex = categoryItems.findIndex((check) => check.id == item.id)
     
     if (existingIndex == -1) {
+      item.id = `${category}-${item.name.toLowerCase().replace(/\s+/g, '-')}`
       categoryItems.push(item)
     } else {
       categoryItems[existingIndex] = item
@@ -64,7 +65,21 @@ const useNutritionStore = defineStore('nutrition', () => {
     items.value = temp
   }
 
-  return { items, saveItem, removeItem }
+  const dataExport = computed(
+    () => JSON.stringify(items.value, null, 2),
+  )
+
+  function importData(data: string) {
+    try {
+      const parsed = JSON.parse(data) as Record<nutritionItemCategory, nutritionItem[]>
+      items.value = parsed
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  return { items, saveItem, removeItem, importData, dataExport }
 })
 
 export default useNutritionStore

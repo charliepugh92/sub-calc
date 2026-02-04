@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import SpeedDial, { type MenuItem } from 'primevue/speeddial'
+import SpeedDial from 'primevue/speeddial'
 import Dialog from 'primevue/dialog'
 import type { nutritionItem } from '@/stores/nutrition'
 import NutritionFacts from './NutritionFacts.vue'
 
 const toast = useToast();
+
+const emit = defineEmits<{
+  (e: 'edit'): void
+}>()
 
 const { item, enableEditor = false } = defineProps<{
   item: nutritionItem
@@ -18,7 +22,7 @@ const speedDialItems = [
     label: 'Edit',
     icon: 'pi pi-pencil',
     command: () => {
-      toast.add({ severity: 'secondary', summary: 'Edit Clicked', life: 1500 })
+      emit('edit')
     },
   },
   {
@@ -35,7 +39,7 @@ const speedDialItems = [
       toast.add({ severity: 'secondary', summary: 'Delete Clicked', life: 1500 })
     }
   }
-] as MenuItem[]
+]
 
 const viewingIngredient = ref(false)
 </script>
@@ -84,7 +88,11 @@ Dialog(
 
   .name {
     width: 100%;
-    font-size: 1.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-size: clamp(1rem, 2rem, 1.5vw);
   }
 
   .calories {
