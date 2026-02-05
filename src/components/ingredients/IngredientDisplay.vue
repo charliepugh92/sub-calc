@@ -2,16 +2,40 @@
 import { ref, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import SpeedDial from 'primevue/speeddial'
+import { useConfirm } from 'primevue/useconfirm'
 import Dialog from 'primevue/dialog'
 import type { nutritionItem } from '@/stores/nutrition'
 import NutritionFacts from './NutritionFacts.vue'
 
 const toast = useToast();
+const confirm = useConfirm();
 
 const emit = defineEmits<{
   (e: 'edit'): void
   (e: 'click'): void
+  (e: 'remove'): void
 }>()
+
+const confirmDelete = (event: PointerEvent) => {
+  speedDialOpen.value = true
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: 'Are you sure you want to delete this ingredient?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Delete',
+      severity: 'danger',
+    },
+    accept: () => {
+      emit('remove')
+    },
+  })
+}
 
 const {
   item,
@@ -21,9 +45,11 @@ const {
 } = defineProps<{
   item: nutritionItem
   enableEditor?: boolean
-  size: 'default' | 'slim'
-  highlight: boolean
+  size?: 'default' | 'slim'
+  highlight?: boolean
 }>()
+
+const speedDialOpen = ref(false)
 
 const speedDialItems = [
   {
@@ -43,9 +69,9 @@ const speedDialItems = [
   {
     label: 'Remove',
     icon: 'pi pi-trash',
-    command: () => {
-      toast.add({ severity: 'secondary', summary: 'Delete Clicked', life: 1500 })
-    }
+    command: ({ originalEvent }: { originalEvent: PointerEvent }) => {
+      confirmDelete(originalEvent)
+    },
   }
 ]
 
@@ -67,6 +93,8 @@ const styleClass = computed(() => {
   SpeedDial.item-display-menu(
     v-if="enableEditor"
     :model="speedDialItems"
+    v-model:visible="speedDialOpen"
+    :hideOnClickOutside="false"
     direction="left"
     style="position: absolute; top: 10px; right: 10px;"
     :tooltip-options="{ position: 'bottom' }"

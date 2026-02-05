@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import nutritionItems from '../assets/nutrition.json'
+import nutritionItems from '../assets/restaurant-nutrition-facts/subway.json'
 import { addSyntheticTrailingComment } from 'typescript';
 
 export interface nutritionItem {
@@ -37,8 +37,22 @@ export enum nutritionItemCategory {
   protein = 'protein',
 }
 
+export enum supportedRestaurants {
+  subway = 'subway',
+}
+
+export interface RestaurantData {
+  ingredients: Record<nutritionItemCategory, nutritionItem[]>;
+}
+
+const restaurantNutritionFiles: Record<supportedRestaurants, RestaurantData> = {
+  [supportedRestaurants.subway]: nutritionItems as RestaurantData,
+}
 const useNutritionStore = defineStore('nutrition', () => {
-  const items = ref(nutritionItems as Record<nutritionItemCategory, nutritionItem[]>)
+  const selectedRestaurant = ref(supportedRestaurants.subway)
+  const restaurantData = computed(() => restaurantNutritionFiles[selectedRestaurant.value])
+
+  const items = ref(restaurantData.value.ingredients as Record<nutritionItemCategory, nutritionItem[]>)
 
   const saveItem = function(category: nutritionItemCategory, item: nutritionItem) {
     const temp = items.value
@@ -56,13 +70,10 @@ const useNutritionStore = defineStore('nutrition', () => {
   }
 
   const removeItem = function(category: nutritionItemCategory, id: string) {
-    const temp = items.value
-
-    temp[category] = temp[category].filter(
-      (item) => item.id != id,
-    )
-
-    items.value = temp
+    items.value = {
+      ...items.value,
+      [category]: items.value[category].filter((item) => item.id != id),
+    }
   }
 
   const dataExport = computed(

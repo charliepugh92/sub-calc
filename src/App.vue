@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import Toast from 'primevue/toast'
+import ConfirmPopup from 'primevue/confirmpopup'
 import Header from '@/components/layout/Header.vue'
 import Footer from '@/components/layout/Footer.vue'
 </script>
@@ -10,6 +11,7 @@ div.app-container
   Header
   main
     Toast
+    ConfirmPopup
     .app-content
       RouterView
   Footer

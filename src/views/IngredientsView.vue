@@ -5,6 +5,7 @@ import Dialog from 'primevue/dialog'
 import IngredientDisplay from '@/components/ingredients/IngredientDisplay.vue'
 import IngredientForm from '@/components/ingredients/IngredientForm.vue'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import useNutritionCalculator, { type nutritionItem, nutritionItemCategory } from '@/stores/nutrition'
 import { capitalize } from '@/utils'
 import { ref, computed } from 'vue'
@@ -145,6 +146,7 @@ SelectButton.category-selector(
     :item="item"
     :enable-editor="true"
     v-on:edit="editItem(item)"
+    v-on:remove="nutritionCalculator.removeItem(selectedCategory, item.id)"
     :key="item.id"
   )
   .no-items(v-if="selectedCategoryItems.length == 0") No {{ selectedCategory }}s listed.
