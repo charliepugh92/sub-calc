@@ -1,7 +1,8 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import nutritionItems from '../assets/restaurant-nutrition-facts/subway.json'
 import { addSyntheticTrailingComment } from 'typescript';
+
+import subwayNutritionData from '../assets/restaurant-nutrition-facts/subway.json'
 
 export interface nutritionItem {
   id: string;
@@ -46,13 +47,18 @@ export interface RestaurantData {
 }
 
 const restaurantNutritionFiles: Record<supportedRestaurants, RestaurantData> = {
-  [supportedRestaurants.subway]: nutritionItems as RestaurantData,
+  [supportedRestaurants.subway]: subwayNutritionData as RestaurantData,
 }
+
 const useNutritionStore = defineStore('nutrition', () => {
   const selectedRestaurant = ref(supportedRestaurants.subway)
   const restaurantData = computed(() => restaurantNutritionFiles[selectedRestaurant.value])
-
-  const items = ref(restaurantData.value.ingredients as Record<nutritionItemCategory, nutritionItem[]>)
+  const items = ref<Record<nutritionItemCategory, nutritionItem[]>>(restaurantData.value.ingredients)
+  
+  function selectRestaurant(restaurant: supportedRestaurants) {
+    selectedRestaurant.value = restaurant
+    items.value = restaurantData.value.ingredients
+  }
 
   const saveItem = function(category: nutritionItemCategory, item: nutritionItem) {
     const temp = items.value
@@ -90,7 +96,7 @@ const useNutritionStore = defineStore('nutrition', () => {
     }
   }
 
-  return { items, saveItem, removeItem, importData, dataExport }
+  return { items, saveItem, removeItem, importData, dataExport, supportedRestaurants, selectedRestaurant }
 })
 
 export default useNutritionStore
