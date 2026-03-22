@@ -1,111 +1,132 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
-import type { nutritionFacts, nutritionItem, nutritionItemCategory } from './nutrition'
+import useNutritionStore from './nutrition'
+import type { nutritionFacts, nutritionItem } from '@/types/nutrition'
+import type { ComponentModifier } from '@/types/restaurant'
 
-export enum sandwichType {
-  sixInch = '6 Inch',
-  footlong = 'Footlong',
-  wrap = 'Wrap',
-  salad = 'Salad',
+export interface OrderItem {
+  item: nutritionItem
+  multiplier: number
+  modifierKey?: string
+  isForced?: boolean
 }
 
-export interface sandwichItem {
-  item: nutritionItem;
-  multiplier: number;
-}
-
-export interface sandwich {
-  type: sandwichType;
-  items: sandwichItem[];
-}
+export type sandwichItem = OrderItem
 
 const useCalculatorStore = defineStore('calculator', () => {
-  const sandwich = ref({
-    type: sandwichType.sixInch,
-    items: [],
-  } as sandwich)
+  const nutritionStore = useNutritionStore()
 
-  const perItemMultiplier = computed(() => {
-    switch (sandwich.value.type) {
-      case sandwichType.sixInch:
-        return 1
-      case sandwichType.footlong:
-        return 2
-      case sandwichType.wrap:
-        return 1
-      case sandwichType.salad:
-        return 1
-    }
+  const sandwichType = computed(() =>
+    Object.fromEntries(
+      nutritionStore.restaurantData.options.map(o => [o.key, o.name])
+    ) as Record<string, string>
+  )
+
+  const sandwich = ref({
+    type: nutritionStore.restaurantData.options[0]!.name,
+    items: [] as OrderItem[],
   })
 
+  const selectedOrderOption = computed(
+    () => nutritionStore.restaurantData.options.find(
+      (option) => option.name === sandwich.value.type,
+    )!,
+  )
+
+  function findItemById(id: string): nutritionItem | undefined {
+    for (const items of Object.values(nutritionStore.items)) {
+      const found = items.find(item => item.id === id)
+      if (found) return found
+    }
+  }
+
+  watch(
+    () => sandwich.value.type,
+    () => {
+      const components = selectedOrderOption.value?.components ?? []
+
+      sandwich.value.items = sandwich.value.items.filter(o => !o.isForced)
+
+      components
+        .filter(c => c.type === 'force' && c.forcedOption)
+        .forEach(c => {
+          const item = findItemById(c.forcedOption!)
+          if (item) sandwich.value.items.push({ item, multiplier: 1, isForced: true })
+        })
+    },
+    { immediate: true },
+  )
+
   const itemSummary = computed(() => {
-    const summary  = {
-      servingSize: 0,
-      calories: 0,
-      totalFat: 0,
-      satFat: 0,
-      transFat: 0,
-      chol: 0,
-      sodium: 0,
-      carb: 0,
-      fiber: 0,
-      sugar: 0,
-      addedSugar: 0,
-      protein: 0,
-      vitA: 0,
-      vitC: 0,
-      calcium: 0,
-      iron: 0,
-    } as nutritionFacts
+    const summary = {} as Record<string, number>
+    const components = selectedOrderOption.value?.components ?? []
+    const baseModifier = selectedOrderOption.value?.baseModifier ?? 1
+    const validCategories = new Set(components.map(c => c.category))
+    const categoryBaseMultipliers = new Map(
+      components.map(c => [c.category, c.baseMultipler ?? 1])
+    )
 
-    sandwich.value.items.forEach(({ item, multiplier }) => {
-      const nutrition = item.nutrition
-      const itemMultiplier = multiplier * perItemMultiplier.value
+    sandwich.value.items.forEach(({ item, multiplier, modifierKey, isForced }: OrderItem) => {
+      const category = item.id.split('-')[0] ?? ''
+      if (!isForced && !validCategories.has(category)) return
 
-      summary.servingSize += nutrition.servingSize * itemMultiplier
-      summary.calories += nutrition.calories * itemMultiplier
-      summary.totalFat += nutrition.totalFat * itemMultiplier
-      summary.satFat += nutrition.satFat * itemMultiplier
-      summary.transFat += nutrition.transFat * itemMultiplier
-      summary.chol += nutrition.chol * itemMultiplier
-      summary.sodium += nutrition.sodium * itemMultiplier
-      summary.carb += nutrition.carb * itemMultiplier
-      summary.fiber += nutrition.fiber * itemMultiplier
-      summary.sugar += nutrition.sugar * itemMultiplier
-      summary.addedSugar += nutrition.addedSugar * itemMultiplier
-      summary.protein += nutrition.protein * itemMultiplier
-      summary.vitA += nutrition.vitA * itemMultiplier
-      summary.vitC += nutrition.vitC * itemMultiplier
-      summary.calcium += nutrition.calcium * itemMultiplier
-      summary.iron += nutrition.iron * itemMultiplier
+      const componentModifiers = components.find(c => c.category === category)?.modifiers
+      let effectiveMultiplier: number
+      if (isForced || !componentModifiers?.length) {
+        effectiveMultiplier = 1
+      } else {
+        const validMod = componentModifiers.find(m => m.key === modifierKey)
+        const defaultMod = componentModifiers.find(m => m.default) ?? componentModifiers[0]
+        effectiveMultiplier = validMod?.multiplier ?? defaultMod?.multiplier ?? 1
+      }
+
+      const nutrition = item.nutrition as Record<string, undefined | number>
+      const componentMultiplier = categoryBaseMultipliers.get(category) ?? 1
+      const itemMultiplier = effectiveMultiplier * baseModifier * componentMultiplier
+
+      Object.keys(nutrition).forEach((key) => {
+        if (nutrition[key] !== undefined) {
+          summary[key] ??= 0
+          summary[key] += nutrition[key]! * itemMultiplier
+        }
+      })
     })
 
-    return summary
+    return summary as nutritionFacts
   })
 
   function removeItemFromSandwich(itemId: string) {
     sandwich.value.items = sandwich.value.items.filter(
-      ({ item }) => item.id != itemId,
+      ({ item }) => item.id !== itemId,
     )
   }
 
-  function replaceCategoryItem(category: nutritionItemCategory, newItem: nutritionItem) {
+  function replaceCategoryItem(category: string, newItem: nutritionItem, multiplier = 1, modifierKey?: string) {
     const existingIndex = sandwich.value.items.findIndex(
       ({ item }) => item.id.startsWith(`${category}-`),
     )
+    const orderItem: OrderItem = { item: newItem, multiplier, modifierKey }
 
-    if (existingIndex == -1) {
-      sandwich.value.items.push({ item: newItem, multiplier: 1 })
+    if (existingIndex === -1) {
+      sandwich.value.items.push(orderItem)
     } else {
-      sandwich.value.items[existingIndex] = { item: newItem, multiplier: 1 }
+      sandwich.value.items[existingIndex] = orderItem
     }
   }
 
-  function addItemToSandwich(newItem: nutritionItem) {
-    sandwich.value.items.push({ item: newItem, multiplier: 1 })
+  function addItemToSandwich(newItem: nutritionItem, multiplier = 1, modifierKey?: string) {
+    sandwich.value.items.push({ item: newItem, multiplier, modifierKey })
   }
 
-  return { sandwich, itemSummary, removeItemFromSandwich, replaceCategoryItem, addItemToSandwich }
+  function updateItemModifier(itemId: string, modifier: ComponentModifier) {
+    const orderItem = sandwich.value.items.find(({ item }) => item.id === itemId)
+    if (orderItem) {
+      orderItem.multiplier = modifier.multiplier
+      orderItem.modifierKey = modifier.key
+    }
+  }
+
+  return { sandwich, sandwichType, selectedOrderOption, itemSummary, removeItemFromSandwich, replaceCategoryItem, addItemToSandwich, updateItemModifier }
 })
 
 export default useCalculatorStore

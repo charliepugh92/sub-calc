@@ -61,6 +61,8 @@ div.app-container
       max-width: 1600px;
       flex: 1;
 
+      @media (max-width: 1024px) { padding: 24px 40px; }
+      @media (max-width: 640px)  { padding: 16px; }
     }
   }
 }

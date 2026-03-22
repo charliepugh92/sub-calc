@@ -2,8 +2,9 @@
 import { ref } from 'vue'
 import FloatLabel from 'primevue/floatlabel'
 import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
-import type { nutritionItem } from '@/stores/nutrition';
+import type { nutritionItem } from '@/types/nutrition';
 
 const { formData } = defineProps<{
   formData: nutritionItem
@@ -171,163 +172,67 @@ form.ingredient-form(@submit.prevent="handleSubmit")
       label(for="name") Name
   .form-group
     FloatLabel(variant="on")
-      InputText(  
-        id="servingSize"
-        type="number"
-        v-model.number="formData.nutrition.servingSize"
-        min="0"
-        required
-      )
+      InputNumber(inputId="servingSize" v-model="formData.nutrition.servingSize" :min="0" required)
       label(for="servingSize") Serving Size (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="calories"
-        type="number"
-        v-model.number="formData.nutrition.calories"
-        min="0"
-        required
-      )
+      InputNumber(inputId="calories" v-model="formData.nutrition.calories" :min="0" required)
       label(for="calories") Calories
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="totalFat"
-        type="number"
-        v-model.number="formData.nutrition.totalFat"
-        min="0"
-        required
-      )
+      InputNumber(inputId="totalFat" v-model="formData.nutrition.totalFat" :min="0" required)
       label(for="totalFat") Total Fat (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="saturatedFat"
-        type="number"
-        v-model.number="formData.nutrition.satFat"
-        min="0"
-        required
-      )
+      InputNumber(inputId="saturatedFat" v-model="formData.nutrition.satFat" :min="0" required)
       label(for="saturatedFat") Saturated Fat (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="transFat"
-        type="number"
-        v-model.number="formData.nutrition.transFat"
-        min="0"
-        required
-      )
+      InputNumber(inputId="transFat" v-model="formData.nutrition.transFat" :min="0" required)
       label(for="transFat") Trans Fat (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="cholesterol"
-        type="number"
-        v-model.number="formData.nutrition.chol"
-        min="0"
-        required
-      )
+      InputNumber(inputId="cholesterol" v-model="formData.nutrition.chol" :min="0" required)
       label(for="cholesterol") Cholesterol (mg)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="sodium"
-        type="number"
-        v-model.number="formData.nutrition.sodium"
-        min="0"
-        required
-      )
+      InputNumber(inputId="sodium" v-model="formData.nutrition.sodium" :min="0" required)
       label(for="sodium") Sodium (mg)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="carbohydrates"
-        type="number"
-        v-model.number="formData.nutrition.carb"
-        min="0"
-        required
-      )
+      InputNumber(inputId="carbohydrates" v-model="formData.nutrition.carb" :min="0" required)
       label(for="carbohydrates") Total Carbohydrates (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="dietaryFiber"
-        type="number"
-        v-model.number="formData.nutrition.fiber"
-        min="0"
-        required
-      )
+      InputNumber(inputId="dietaryFiber" v-model="formData.nutrition.fiber" :min="0" required)
       label(for="dietaryFiber") Dietary Fiber (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="totalSugars"
-        type="number"
-        v-model.number="formData.nutrition.sugar"
-        min="0"
-        required
-      )
+      InputNumber(inputId="totalSugars" v-model="formData.nutrition.sugar" :min="0" required)
       label(for="totalSugars") Total Sugars (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="addedSugars"
-        type="number"
-        v-model.number="formData.nutrition.addedSugar"
-        min="0"
-        required
-      )
+      InputNumber(inputId="addedSugars" v-model="formData.nutrition.addedSugar" :min="0" required)
       label(for="addedSugars") Added Sugars (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="protein"
-        type="number"
-        v-model.number="formData.nutrition.protein"
-        min="0"
-        required
-      )
+      InputNumber(inputId="protein" v-model="formData.nutrition.protein" :min="0" required)
       label(for="protein") Protein (g)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="vitaminA"
-        type="number"
-        v-model.number="formData.nutrition.vitA"
-        min="0"
-        required
-      )
+      InputNumber(inputId="vitaminA" v-model="formData.nutrition.vitA" :min="0" required)
       label(for="vitaminA") Vitamin A (mcg)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="vitaminC"
-        type="number"
-        v-model.number="formData.nutrition.vitC"
-        min="0"
-        required
-      )
+      InputNumber(inputId="vitaminC" v-model="formData.nutrition.vitC" :min="0" required)
       label(for="vitaminC") Vitamin C (mg)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="calcium"
-        type="number"
-        v-model.number="formData.nutrition.calcium"
-        min="0"
-        required
-      )
+      InputNumber(inputId="calcium" v-model="formData.nutrition.calcium" :min="0" required)
       label(for="calcium") Calcium (mg)
   .form-group
     FloatLabel(variant="on")
-      InputText(
-        id="iron"
-        type="number"
-        v-model.number="formData.nutrition.iron"
-        min="0"
-        required
-      )
+      InputNumber(inputId="iron" v-model="formData.nutrition.iron" :min="0" required)
       label(for="iron") Iron (mg)
   .form-actions
     Button(

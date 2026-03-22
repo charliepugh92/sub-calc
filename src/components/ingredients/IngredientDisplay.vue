@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useToast } from 'primevue/usetoast'
 import SpeedDial from 'primevue/speeddial'
+import type { MenuItem } from 'primevue/menuitem'
 import { useConfirm } from 'primevue/useconfirm'
 import Dialog from 'primevue/dialog'
-import type { nutritionItem } from '@/stores/nutrition'
+import type { nutritionItem } from '@/types/nutrition'
 import NutritionFacts from './NutritionFacts.vue'
 
-const toast = useToast();
 const confirm = useConfirm();
 
 const emit = defineEmits<{
@@ -51,7 +50,7 @@ const {
 
 const speedDialOpen = ref(false)
 
-const speedDialItems = [
+const speedDialItems: MenuItem[] = [
   {
     label: 'Edit',
     icon: 'pi pi-pencil',
@@ -69,8 +68,8 @@ const speedDialItems = [
   {
     label: 'Remove',
     icon: 'pi pi-trash',
-    command: ({ originalEvent }: { originalEvent: PointerEvent }) => {
-      confirmDelete(originalEvent)
+    command: ({ originalEvent }) => {
+      confirmDelete(originalEvent as PointerEvent)
     },
   }
 ]
@@ -97,7 +96,7 @@ const styleClass = computed(() => {
     :hideOnClickOutside="false"
     direction="left"
     style="position: absolute; top: 10px; right: 10px;"
-    :tooltip-options="{ position: 'bottom' }"
+    :tooltip-options="{ event: 'hover', position: 'bottom' }"
   )
   .name {{ item.name }}
   .detail-group.calories
@@ -113,6 +112,9 @@ const styleClass = computed(() => {
     .macro-group.fat
       .label Fat
       .value {{ item.nutrition.totalFat }}g
+    .macro-group.ctp
+      .label CTP
+      .value {{ item.nutrition.protein ? Math.round((item.nutrition.calories ?? 0) / item.nutrition.protein) : '—' }}
 Dialog(
   v-model:visible="viewingIngredient"
   modal

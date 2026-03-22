@@ -1,68 +1,90 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { addSyntheticTrailingComment } from 'typescript';
 
-import subwayNutritionData from '../assets/restaurant-nutrition-facts/subway.json'
+import type { nutritionItem } from '@/types/nutrition';
+import type { RestaurantData, RestaurantOption } from '@/types/restaurant';
 
-export interface nutritionItem {
-  id: string;
-  name: string;
-  nutrition: nutritionFacts;
-}
+import subwayNutritionData from '../utils/restaurant-nutrition-files/subway'
 
-export interface nutritionFacts {
-  servingSize: number;
-  calories: number;
-  totalFat: number;
-  satFat: number;
-  transFat: number;
-  chol: number;
-  sodium: number;
-  carb: number;
-  fiber: number;
-  sugar: number;
-  addedSugar: number;
-  protein: number;
-  vitA: number;
-  vitC: number;
-  calcium: number;
-  iron: number;
-}
-
-export enum nutritionItemCategory {
-  bread = 'bread',
-  condiment = 'condiment',
-  spice = 'spice',
-  vegetable = 'vegetable',
-  cheese = 'cheese',
-  protein = 'protein',
-}
-
-export enum supportedRestaurants {
+export enum defaultRestaurants {
   subway = 'subway',
 }
 
-export interface RestaurantData {
-  ingredients: Record<nutritionItemCategory, nutritionItem[]>;
-}
-
-const restaurantNutritionFiles: Record<supportedRestaurants, RestaurantData> = {
-  [supportedRestaurants.subway]: subwayNutritionData as RestaurantData,
-}
+export const nutritionItemCategory = {
+  bread: 'bread',
+  protein: 'protein',
+  cheese: 'cheese',
+  vegetable: 'vegetable',
+  condiment: 'condiment',
+  spice: 'spice',
+} as const
 
 const useNutritionStore = defineStore('nutrition', () => {
-  const selectedRestaurant = ref(supportedRestaurants.subway)
-  const restaurantData = computed(() => restaurantNutritionFiles[selectedRestaurant.value])
-  const items = ref<Record<nutritionItemCategory, nutritionItem[]>>(restaurantData.value.ingredients)
+  const restaurantNutritionFiles = ref<Record<string, RestaurantData>>({
+    [defaultRestaurants.subway]: subwayNutritionData as RestaurantData,
+  })
+
+  const selectedRestaurant = ref(defaultRestaurants.subway as string)
+  const restaurantData = computed(() => restaurantNutritionFiles.value[selectedRestaurant.value]!)
+  const items = ref<Record<string, nutritionItem[]>>(restaurantData.value.ingredients)
+
+  const supportedRestaurants = computed(() => Object.keys(restaurantNutritionFiles.value))
+  const restaurantOptions = computed(() =>
+    Object.entries(restaurantNutritionFiles.value).map(([key, data]) => ({
+      key,
+      name: data.name,
+      logo: data.logo,
+    }))
+  )
+  const nutritionItemCategories = computed(() => Object.keys(restaurantData.value.ingredients))
   
-  function selectRestaurant(restaurant: supportedRestaurants) {
-    selectedRestaurant.value = restaurant
-    items.value = restaurantData.value.ingredients
+  function selectRestaurant(restaurant: string) {
+    if (restaurantNutritionFiles.value[restaurant]) {
+      selectedRestaurant.value = restaurant
+      items.value = restaurantData.value.ingredients
+    }
   }
 
-  const saveItem = function(category: nutritionItemCategory, item: nutritionItem) {
+  function updateRestaurantInfo(updates: { name?: string; logo?: string }) {
+    Object.assign(restaurantNutritionFiles.value[selectedRestaurant.value]!, updates)
+  }
+
+  function saveOption(option: RestaurantOption) {
+    const options = restaurantNutritionFiles.value[selectedRestaurant.value]!.options
+    const idx = options.findIndex(o => o.key === option.key)
+    if (idx === -1) options.push(option)
+    else options[idx] = option
+  }
+
+  function removeOption(key: string) {
+    const current = restaurantNutritionFiles.value[selectedRestaurant.value]!
+    current.options = current.options.filter(o => o.key !== key)
+  }
+
+  function addIngredientCategory(category: string) {
+    if (items.value[category]) return
+    items.value = { ...items.value, [category]: [] }
+    restaurantNutritionFiles.value[selectedRestaurant.value]!.ingredients[category] = []
+  }
+
+  function removeIngredientCategory(category: string) {
+    const newItems = { ...items.value }
+    delete newItems[category]
+    items.value = newItems
+    delete restaurantNutritionFiles.value[selectedRestaurant.value]!.ingredients[category]
+  }
+
+  function addRestaurant(name: string, logo: string) {
+    const key = name.toLowerCase().replace(/\s+/g, '-')
+    restaurantNutritionFiles.value[key] = { name, logo, options: [], ingredients: {} }
+    selectRestaurant(key)
+  }
+
+  const saveItem = function(category: string, item: nutritionItem) {
+    if (!nutritionItemCategories.value.includes(category)) return
+
     const temp = items.value
-    const categoryItems = temp[category]
+    const categoryItems = temp[category]!
     const existingIndex = categoryItems.findIndex((check) => check.id == item.id)
     
     if (existingIndex == -1) {
@@ -75,28 +97,31 @@ const useNutritionStore = defineStore('nutrition', () => {
     items.value = temp
   }
 
-  const removeItem = function(category: nutritionItemCategory, id: string) {
+  const removeItem = function(category: string, id: string) {
+    if (!nutritionItemCategories.value.includes(category)) return
+  
     items.value = {
       ...items.value,
-      [category]: items.value[category].filter((item) => item.id != id),
+      [category]: items.value[category]!.filter((item) => item.id != id),
     }
   }
 
   const dataExport = computed(
-    () => JSON.stringify(items.value, null, 2),
+    () => JSON.stringify(restaurantData.value, null, 2),
   )
 
   function importData(data: string) {
     try {
-      const parsed = JSON.parse(data) as Record<nutritionItemCategory, nutritionItem[]>
-      items.value = parsed
+      const parsed = JSON.parse(data) as RestaurantData
+      restaurantNutritionFiles.value[selectedRestaurant.value] = parsed
+      items.value = parsed.ingredients
       return true
     } catch {
       return false
     }
   }
 
-  return { items, saveItem, removeItem, importData, dataExport, supportedRestaurants, selectedRestaurant }
+  return { items, saveItem, removeItem, restaurantData, importData, dataExport, supportedRestaurants, restaurantOptions, selectedRestaurant, selectRestaurant, addRestaurant, updateRestaurantInfo, saveOption, removeOption, addIngredientCategory, removeIngredientCategory }
 })
 
 export default useNutritionStore

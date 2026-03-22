@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { nutritionFacts } from '../../stores/nutrition'
+import type { nutritionFacts } from '@/types/nutrition'
 
 const {
   nutrition,
   servingDescription = '6" sub portion',
-} = defineProps<{ nutrition: nutritionFacts, servingDescription: string }>()
+} = defineProps<{ nutrition: nutritionFacts, servingDescription?: string }>()
+
+const d = (val: number | undefined, unit = '') => val != null ? `${val}${unit}` : '—'
 
 </script>
 
@@ -14,57 +15,57 @@ const {
   header Nutrition Facts
 .section
   .label Serving Size:
-  .value {{ servingDescription }} (about {{ nutrition.servingSize }}g)
+  .value {{ servingDescription }} (about {{ d(nutrition.servingSize, 'g') }})
 hr
 .section.calories
   .row
     .nutrient Calories
-    .value.font-bold {{ nutrition.calories }}
+    .value.font-bold {{ d(nutrition.calories) }}
 hr
 .section
   .row
     .nutrient Total Fat
-    .value {{ nutrition.totalFat }}g
+    .value {{ d(nutrition.totalFat, 'g') }}
   .row.sub-nutrient
     .nutrient Saturated Fat
-    .value {{ nutrition.satFat }}g
+    .value {{ d(nutrition.satFat, 'g') }}
   .row.sub-nutrient
     .nutrient Trans Fat
-    .value {{ nutrition.transFat }}g
+    .value {{ d(nutrition.transFat, 'g') }}
   .row.sub-nutrient
     .nutrient Cholesterol
-    .value {{ nutrition.chol }}mg
+    .value {{ d(nutrition.chol, 'mg') }}
   .row
     .nutrient Sodium
-    .value {{ nutrition.sodium }}mg
+    .value {{ d(nutrition.sodium, 'mg') }}
   .row
     .nutrient Total Carbohydrate
-    .value {{ nutrition.carb }}g
+    .value {{ d(nutrition.carb, 'g') }}
   .row.sub-nutrient
     .nutrient Dietary Fiber
-    .value {{ nutrition.fiber }}g
+    .value {{ d(nutrition.fiber, 'g') }}
   .row.sub-nutrient
     .nutrient Total Sugars
-    .value {{ nutrition.sugar }}g
+    .value {{ d(nutrition.sugar, 'g') }}
   .row.sub-nutrient
     .nutrient Added Sugars
-    .value {{ nutrition.addedSugar }}g
+    .value {{ d(nutrition.addedSugar, 'g') }}
   .row
     .nutrient Protein
-    .value {{ nutrition.protein }}g
+    .value {{ d(nutrition.protein, 'g') }}
 .section.vitamins
   .row
     .nutrient Vitamin A
-    .value {{ nutrition.vitA }}%
+    .value {{ d(nutrition.vitA, '%') }}
   .row
     .nutrient Vitamin C
-    .value {{ nutrition.vitC }}%
+    .value {{ d(nutrition.vitC, '%') }}
   .row
     .nutrient Calcium
-    .value {{ nutrition.calcium }}%
+    .value {{ d(nutrition.calcium, '%') }}
   .row
     .nutrient Iron
-    .value {{ nutrition.iron }}%
+    .value {{ d(nutrition.iron, '%') }}
 </template>
 
 <style scoped lang="scss">
